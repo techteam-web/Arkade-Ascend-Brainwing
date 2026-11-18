@@ -212,24 +212,26 @@ export default function ViewsPage() {
           <p className="eyebrow">{grade.label} · <span className="num">120</span> m aerial</p>
           <p className="mt-2 text-[clamp(0.95rem,1.2vw,1.2rem)] tracking-[0.02em] text-ivory/90" aria-live="polite">{grade.caption}</p>
         </div>
-        <div data-reveal className="glass-panel flex flex-wrap items-center gap-2 self-start rounded-full p-2 sm:gap-3 md:self-auto">
-          <div role="group" aria-label="Time of day" className="flex gap-1">
-            {TIMES.map(item => <button key={item.id} type="button" className="chip border-transparent! max-[22rem]:px-2.5" aria-pressed={time === item.id} onClick={() => show(item.id)}>{item.label}</button>)}
-          </div>
-          {!failed && <>
-            <span className="h-6 w-px bg-gold-500/30 max-sm:hidden" aria-hidden="true" />
-            <div className="flex items-center gap-1">
-              <button type="button" className="btn-icon border-transparent!" onClick={() => setSpinning(on => !on)}
-                aria-label={spinning ? 'Stop rotation' : 'Start rotation'}><SpinIcon paused={!spinning} /></button>
-              {/* On phones the panorama is dragged; the arrows join from sm up. */}
-              <button type="button" className="btn-icon border-transparent! max-sm:hidden" onClick={() => look(-1)} aria-label="Look left"><ChevronIcon direction="left" /></button>
-              <button type="button" className="btn-icon border-transparent! max-sm:hidden" onClick={() => look(1)} aria-label="Look right"><ChevronIcon /></button>
-            </div>
-          </>}
-        </div>
       </div>
-      <p className="pointer-events-none absolute bottom-1.5 right-(--gutter) text-[0.5rem] uppercase tracking-plus text-ivory/70 [text-shadow:0_1px_6px_rgba(0,0,0,.6)] max-sm:bottom-6">Shot on location</p>
-      <p className="pointer-events-none absolute bottom-1.5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[0.5rem] uppercase tracking-plus text-ivory/45">
+      {/* Day / Evening / Night, stacked at the right middle (client, 18 Nov
+          2026), with the rotation and look controls below them. */}
+      <div data-reveal className="glass-panel pointer-events-auto absolute right-(--gutter) top-1/2 flex -translate-y-1/2 flex-col items-stretch gap-1 rounded-[1.6rem] p-1.5 short:top-[calc(50%-1rem)]">
+        <div role="group" aria-label="Time of day" className="flex flex-col gap-1">
+          {TIMES.map(item => <button key={item.id} type="button" className="chip border-transparent! max-[22rem]:px-2.5" aria-pressed={time === item.id} onClick={() => show(item.id)}>{item.label}</button>)}
+        </div>
+        {!failed && <>
+          <span className="mx-auto my-1 h-px w-8 bg-gold-500/30" aria-hidden="true" />
+          <div className="flex items-center justify-center gap-0.5">
+            {/* On phones the panorama is dragged; the arrows join from sm up. */}
+            <button type="button" className="btn-icon border-transparent! max-sm:hidden" onClick={() => look(-1)} aria-label="Look left"><ChevronIcon direction="left" /></button>
+            <button type="button" className="btn-icon border-transparent!" onClick={() => setSpinning(on => !on)}
+              aria-label={spinning ? 'Stop rotation' : 'Start rotation'}><SpinIcon paused={!spinning} /></button>
+            <button type="button" className="btn-icon border-transparent! max-sm:hidden" onClick={() => look(1)} aria-label="Look right"><ChevronIcon /></button>
+          </div>
+        </>}
+      </div>
+      <p className="pointer-events-none absolute bottom-1.5 right-(--gutter) z-[36] text-[0.5rem] uppercase tracking-plus text-ivory/70 [text-shadow:0_1px_6px_rgba(0,0,0,.6)] max-sm:bottom-6">Shot on location</p>
+      <p className="pointer-events-none absolute bottom-1.5 left-1/2 z-[36] -translate-x-1/2 whitespace-nowrap text-[0.5rem] uppercase tracking-plus text-ivory/45">
         <span className="num">360</span>° aerial panorama<span className="max-sm:hidden"> · views from each residence vary</span>
       </p>
     </div>

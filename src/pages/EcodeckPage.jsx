@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import { gsap } from '../app/reveal.js'
 import { PageHeading } from '../components/PageKit.jsx'
 import { prefersReducedMotion } from '../hooks/useMediaQuery.js'
-import { useShell } from '../app/ShellContext.js'
 import { amenities, ecodeck } from '../content/ecodeck.js'
 
 // The Ecodeck layout on the gold ground, its amenities on a plum card. Choosing
@@ -27,7 +26,6 @@ export default function EcodeckPage() {
   const [zoomed, setZoomed] = useState(false)
   const [active, setActive] = useState(null)
   const [pointed, setPointed] = useState(null)
-  const { menuOpen } = useShell()
 
   const apply = (next, duration = 0.7) => {
     const scale = clamp(next.scale, 1, MAX_ZOOM)
@@ -117,8 +115,6 @@ export default function EcodeckPage() {
     list.current.scrollTo({ top: list.current.scrollTop + place.top - box.top - (box.height - place.height) / 2, behavior: prefersReducedMotion() ? 'auto' : 'smooth' })
   }, [active])
 
-  // The page opens as it starts, like Residences and the E Brochure.
-  useEffect(() => { if (menuOpen) reset(0) }, [menuOpen])
   useEffect(() => { const target = stage.current; return () => gsap.killTweensOf(target) }, [])
 
   const marked = amenities.find(item => item.id === (pointed ?? active))

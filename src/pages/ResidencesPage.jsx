@@ -24,7 +24,7 @@ const FADE_SELECT = '[mask-image:linear-gradient(90deg,transparent,#000_5%,#000_
 const RenderNote = () => <p className="pointer-events-none absolute bottom-0 right-0 text-[0.52rem] uppercase tracking-[0.22em] text-muted/90">Architect’s impression</p>
 
 export default function ResidencesPage() {
-  const { go, menuOpen } = useShell()
+  const { go } = useShell()
   // Visual selection or the unit finder takes over the page; ?finder (from a
   // plan's "back to results") opens straight into the finder, and
   // ?finder=compare straight back into the comparison the plan was opened from.
@@ -62,17 +62,9 @@ export default function ResidencesPage() {
     gsap.to(intro.current, { autoAlpha: 0, y: -8, duration, ease: 'power2.in', overwrite: true, onComplete: () => setMode(next) })
   }
   const close = () => setMode(null)
-  // Leaving for the menu closes whichever way of exploring is open, quietly
-  // behind the menu, so coming back always finds the page as it starts.
+  // The menu now drops down over the page, so it no longer closes whichever
+  // way of exploring is open; leaving the page still starts it afresh.
   const quiet = useRef(false)
-  useEffect(() => {
-    if (!menuOpen) return
-    gsap.killTweensOf(intro.current)
-    setPreview(null)
-    setViewing(null)
-    if (mode) { quiet.current = true; setMode(null) }
-    else gsap.set(intro.current, { autoAlpha: 1, y: 0 })
-  }, [menuOpen])
   const was = useRef(mode)
   useLayoutEffect(() => {
     const previous = was.current

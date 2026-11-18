@@ -5,12 +5,12 @@ import { BrandLockup } from '../components/Brand.jsx'
 import { pad, sectionIndex, sections } from './routes.js'
 import { prefersReducedMotion } from '../hooks/useMediaQuery.js'
 
-export default function SiteHeader({ route, tone, hidden, menuOpen, onMenu, menuButton }) {
+// The logo and the section counter; the menu is the bar at the foot (BottomNav).
+export default function SiteHeader({ route, tone, hidden = false }) {
   const index = sectionIndex(route.id)
   const root = useRef(null)
   useLayoutEffect(() => {
     const duration = prefersReducedMotion() ? 0 : 0.8
-    // Visible (and focusable) at once when shown, so focus can return to the menu button.
     if (hidden) {
       gsap.to(root.current, { autoAlpha: 0, y: -12, duration, ease: 'silk', overwrite: true })
     } else {
@@ -28,17 +28,6 @@ export default function SiteHeader({ route, tone, hidden, menuOpen, onMenu, menu
       {index >= 0 && <p className="num hidden items-center gap-2 text-[0.72rem] text-muted sm:flex" aria-label={`Section ${index + 1} of ${sections.length}`}>
         <span className="text-fg">{pad(index + 1)}</span><span className="opacity-60">/</span><span>{pad(sections.length)}</span>
       </p>}
-      <button ref={menuButton} type="button" onClick={onMenu} aria-expanded={menuOpen} aria-haspopup="dialog"
-        className="group flex min-h-11 items-center gap-4 rounded-full py-2 pl-4 pr-1 text-fg">
-        <span className="text-[0.68rem] font-medium uppercase tracking-[0.3em] transition-colors group-hover:text-accent max-[23rem]:sr-only">Menu</span>
-        <span className="grid size-11 place-items-center rounded-full border border-line transition-colors duration-500 group-hover:border-accent group-focus-visible:border-accent">
-          <span className="flex w-4.5 flex-col items-end gap-[5px]">
-            <i className="block h-px w-full bg-current" />
-            <i className="block h-px w-2/3 bg-current transition-[width] duration-500 group-hover:w-full" />
-            <i className="block h-px w-full bg-current" />
-          </span>
-        </span>
-      </button>
     </div>
   </header>
 }

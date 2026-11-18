@@ -4,7 +4,6 @@ import { PageHeading } from '../components/PageKit.jsx'
 import { ChevronIcon } from '../components/Brand.jsx'
 import useStepper from '../hooks/useStepper.js'
 import useMediaQuery, { prefersReducedMotion } from '../hooks/useMediaQuery.js'
-import { useShell } from '../app/ShellContext.js'
 
 // The e-brochure (`9x14_in_Arkade Ascend-E-Presenter.pdf`, supplied 30 Oct 2026)
 // read in the page, on the gold ground. Its 28 sheets are rendered to WebP in
@@ -46,10 +45,7 @@ export default function EBrochurePage() {
   const last = book ? VIEWS.length - 1 : TOTAL - 1
   const [leaving, setLeaving] = useState(null)       // { view, book, dir } fading out under the new one
   const shown = useRef({ view, book })
-  // The brochure always opens on its cover: leaving the page closes it, and
-  // the menu (which only covers the page) takes it back to the start.
-  const { menuOpen } = useShell()
-  useEffect(() => { if (menuOpen) { setLeaving(null); setPage(0) } }, [menuOpen])
+  // The brochure always opens on its cover: leaving the page closes it.
 
   const go = direction => {
     const next = Math.max(0, Math.min(last, view + direction))

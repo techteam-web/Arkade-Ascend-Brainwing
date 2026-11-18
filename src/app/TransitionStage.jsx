@@ -3,7 +3,6 @@ import { Navigate, Route, Routes, useLocation } from 'react-router'
 import { gsap, revealIn, revealOut, primeReveal, settleReveal } from './reveal.js'
 import { prefersReducedMotion } from '../hooks/useMediaQuery.js'
 import { sceneStore } from '../scenes/sceneStore.js'
-import HomePage from '../pages/HomePage.jsx'
 import NeuGenPage from '../pages/NeuGenPage.jsx'
 import TowerPage from '../pages/TowerPage.jsx'
 import ResidencesPage from '../pages/ResidencesPage.jsx'
@@ -17,6 +16,7 @@ import AVVideoPage from '../pages/AVVideoPage.jsx'
 import EBrochurePage from '../pages/EBrochurePage.jsx'
 import EcodeckPage from '../pages/EcodeckPage.jsx'
 import ArkadeFamilyPage from '../pages/ArkadeFamilyPage.jsx'
+import ResourcesPage from '../pages/ResourcesPage.jsx'
 
 // Holds the outgoing page on screen while its elements release, then swaps
 // to the new route and choreographs its arrival: a simple cross-fade. The
@@ -93,9 +93,10 @@ export default function TransitionStage({ active }) {
   return <>
     <div ref={stage} className="absolute inset-0" key={shown.pathname}>
       <Routes location={shown}>
-        <Route path="/" element={<HomePage />} />
+        {/* The Tower is the home screen. */}
+        <Route path="/" element={<TowerPage />} />
         <Route path="/neu-gen" element={<NeuGenPage />} />
-        <Route path="/tower" element={<TowerPage />} />
+        <Route path="/tower" element={<Navigate to="/" replace />} />
         <Route path="/residences/*" element={<ResidencesPage />} />
         <Route path="/floor-plans" element={<FloorPlansPage />} />
         <Route path="/specifications" element={<SpecificationsPage />} />
@@ -106,6 +107,7 @@ export default function TransitionStage({ active }) {
         <Route path="/av-video" element={<AVVideoPage />} />
         <Route path="/ecodeck" element={<EcodeckPage />} />
         <Route path="/e-brochure" element={<EBrochurePage />} />
+        <Route path="/resources" element={<ResourcesPage />} />
         <Route path="/about-us" element={<ArkadeFamilyPage />} />
         <Route path="/arkade-family" element={<Navigate to="/about-us" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />

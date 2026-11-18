@@ -136,7 +136,7 @@ export default function NeuGenPage() {
           <svg viewBox="0 0 24 24"><path d="m6 15 6-6 6 6" /></svg>
         </button>
         {last
-          ? <button type="button" className="btn-lux" onClick={() => go('/tower')}>The tower<ArrowIcon /></button>
+          ? <button type="button" className="btn-lux" onClick={() => go('/')}>The tower<ArrowIcon /></button>
           : <button type="button" className="btn-lux" onClick={() => change(c => c + 1)}>Continue<ArrowIcon /></button>}
       </div>
     </div>
@@ -282,6 +282,6 @@ function Together({ active }) {
       </div>
     </div>
     {/* Bottom right, under the chapter controls: the BrainWing credit holds the bottom left. */}
-    <p className="pointer-events-none absolute bottom-(--credit-bottom) right-(--gutter) text-[0.52rem] uppercase tracking-[0.2em] text-ivory/70 [text-shadow:0_1px_6px_rgba(0,0,0,.5)]">Representational image</p>
+    <p className="pointer-events-none absolute bottom-(--credit-bottom) right-(--gutter) z-[36] text-[0.52rem] uppercase tracking-[0.2em] text-ivory/70 [text-shadow:0_1px_6px_rgba(0,0,0,.5)]">Representational image</p>
   </Chapter>
 }

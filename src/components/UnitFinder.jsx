@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom'
 import { gsap } from '../app/reveal.js'
 import { ArrowIcon } from './Brand.jsx'
 import PanoramaViewer from './PanoramaViewer.jsx'
-import SheetSwitch from './SheetSwitch.jsx'
 import { BACK_HOMES, homeOutlook } from './ViewOverlay.jsx'
 import { wing as planWing } from '../content/floorPlans.js'
 import {
@@ -34,7 +33,9 @@ const UnitFinder = forwardRef(function UnitFinder({ reopen = null, onClose, onOp
   const [view, setView] = useState(remembered.view)
   const [sort, setSort] = useState(remembered.sort)
   const [compare, setCompare] = useState(remembered.compare)
-  const [look, setLook] = useState(remembered.look)   // plan cards show the drawing, or its whole sheet
+  // Plan cards show the drawing only: the "Key plan & areas" sheet and the
+  // eco deck were taken off (client, 18 Nov 2026).
+  const look = 'plan'
   const [comparing, setComparing] = useState(() => reopen === 'compare' && remembered.compare.length > 1 && Boolean(compareReturn))
   const [filtersOpen, setFiltersOpen] = useState(false)    // phones and tablets fold the filters away
   const compareButton = useRef(null)
@@ -113,7 +114,6 @@ const UnitFinder = forwardRef(function UnitFinder({ reopen = null, onClose, onOp
             <span className="num text-fg">{results.length}</span> {results.length === 1 ? 'home' : 'homes'} · <span className="num text-fg">{groups.length}</span> {groups.length === 1 ? 'plan type' : 'plan types'}
           </p>
           <div className="flex flex-wrap items-center gap-2">
-            {view === 'plans' && <SheetSwitch value={look} onChange={setLook} />}
             <div role="group" aria-label="Show results as" className="flex gap-1 rounded-full border border-line p-1">
               {[['plans', 'Plans'], ['homes', 'Homes']].map(([id, label]) => <button key={id} type="button" className="chip border-transparent!" aria-pressed={view === id} onClick={() => setView(id)}>{label}</button>)}
             </div>
@@ -159,7 +159,7 @@ const UnitFinder = forwardRef(function UnitFinder({ reopen = null, onClose, onOp
       </div>
     </div>
 
-    {comparing && <CompareDialog ids={compare} results={results} look={look} restore={restoring.current} onLook={setLook} onClose={closeCompare}
+    {comparing && <CompareDialog ids={compare} results={results} look={look} restore={restoring.current} onClose={closeCompare}
       onOpen={(plan, state) => { compareReturn = state; onOpenPlan({ plan, from: 'compare' }) }} />}
   </div>
 })
@@ -502,7 +502,7 @@ function CompareViews({ types }) {
 // portalled into the page frame, so the full-screen gate still covers it.
 // It opens on the plans alone (client, 16 Oct 2026); "Full detail plan"
 // swaps them for the details alone: areas, features and every room's size.
-function CompareDialog({ ids, results, look, restore, onLook, onClose, onOpen: openPlan }) {
+function CompareDialog({ ids, results, look, restore, onClose, onOpen: openPlan }) {
   const root = useRef(null)
   const sheet = useRef(null)
   const [view, setView] = useState(restore?.view ?? 'plans')
@@ -551,7 +551,6 @@ function CompareDialog({ ids, results, look, restore, onLook, onClose, onOpen: o
       <div className="ml-auto flex flex-wrap items-center justify-end gap-3">
         {view === 'plans'
           ? <>
-            <SheetSwitch value={look} onChange={onLook} />
             <button type="button" className="btn-lux whitespace-nowrap bg-transparent!" onClick={() => show('views')}>Compare views<ArrowIcon className="shrink-0" /></button>
             <button type="button" className="btn-lux whitespace-nowrap" onClick={() => show('details')}>Full detail plan<ArrowIcon className="shrink-0" /></button>
           </>

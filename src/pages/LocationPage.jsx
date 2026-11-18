@@ -150,7 +150,7 @@ export default function LocationPage() {
         short screens, where the panel reaches the foot, beside it; on
         portrait screens at the foot of the page below the sheet, above the
         map's attribution (client, 26 Oct 2026). */}
-    <p className="pointer-events-none absolute right-(--gutter) z-10 rounded-full bg-cream-50/85 px-3 py-1 text-[0.52rem] uppercase tracking-[0.16em] text-plum-700 backdrop-blur-sm max-sm:max-w-[calc(100%-2*var(--gutter))] max-sm:text-[0.48rem] bottom-(--note-bottom) short:right-(--beside-panel) short:bottom-[calc(var(--note-bottom)+1.75rem)] stack:bottom-[calc(var(--credit-bottom)+1.45rem)] stack:py-0.5"
+    <p className="pointer-events-none absolute right-(--gutter) z-[36] rounded-full bg-cream-50/85 px-3 py-1 text-[0.52rem] uppercase tracking-[0.16em] text-plum-700 backdrop-blur-sm max-sm:max-w-[calc(100%-2*var(--gutter))] max-sm:text-[0.48rem] bottom-(--note-bottom) short:right-(--beside-panel) short:bottom-[calc(var(--note-bottom)+1.75rem)] stack:bottom-[calc(var(--credit-bottom)+1.45rem)] stack:py-0.5"
       style={{ '--note-bottom': inset.bottom ? `${inset.bottom + 30}px` : 'clamp(0.3rem, 1.2vh, 0.75rem)', '--beside-panel': `${inset.right}px` }}>
       Indicative map not to scale · walking distances
     </p>
