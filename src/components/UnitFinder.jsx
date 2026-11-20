@@ -1,6 +1,7 @@
 import { forwardRef, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { gsap } from '../app/reveal.js'
+import { useBack } from '../app/back.js'
 import { ArrowIcon } from './Brand.jsx'
 import PanoramaViewer from './PanoramaViewer.jsx'
 import { BACK_HOMES, homeOutlook } from './ViewOverlay.jsx'
@@ -15,7 +16,6 @@ import useMediaQuery, { prefersReducedMotion } from '../hooks/useMediaQuery.js'
 const MAX_COMPARE = 3
 const facetByKey = Object.fromEntries(facets.map(facet => [facet.key, facet]))
 const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`
-const Icon = ({ d }) => <svg viewBox="0 0 24 24"><path d={d} /></svg>
 
 // Remembered for the session, so coming back from a plan finds the same search.
 let remembered = { filters: emptyFilters(), view: 'plans', sort: { plans: 'type', homes: 'floor-asc' }, compare: [], look: 'plan' }
@@ -28,7 +28,7 @@ let compareReturn = null
 // results read as plan types (cards) or as single homes (a list);
 // up to three plan types compare side by side. `onOpenPlan` receives
 // { plan } or { home } and opens the Floor Plans page.
-const UnitFinder = forwardRef(function UnitFinder({ reopen = null, onClose, onOpenPlan, onView }, ref) {
+const UnitFinder = forwardRef(function UnitFinder({ reopen = null, onOpenPlan, onView }, ref) {
   const [filters, setFilters] = useState(remembered.filters)
   const [view, setView] = useState(remembered.view)
   const [sort, setSort] = useState(remembered.sort)
@@ -63,16 +63,16 @@ const UnitFinder = forwardRef(function UnitFinder({ reopen = null, onClose, onOp
   const toggleCompare = id => setCompare(value => value.includes(id) ? value.filter(item => item !== id) : value.length < MAX_COMPARE ? [...value, id] : value)
   const showHomes = id => { setFilters(value => ({ ...value, type: [id] })); setView('homes') }
   const closeCompare = () => { restoring.current = null; setComparing(false); requestAnimationFrame(() => compareButton.current?.focus({ preventScroll: true })) }
+  // Back in the menu bar closes the comparison before the finder (client, 20 Nov 2026).
+  useBack(comparing, closeCompare, 2)
 
   const chipFacet = key => <ChipFacet key={key} facet={facetByKey[key]} filters={filters} onToggle={id => toggle(key, id)} />
 
   return <div ref={ref} role="region" aria-label="Unit finder" className="absolute inset-0 flex flex-col gap-3">
-    <div className="flex items-start justify-between gap-4">
-      <div className="min-w-0">
-        <p className="eyebrow">02 · Unit finder</p>
-        <h2 tabIndex={-1} className="display mt-2 text-[clamp(1.5rem,2.4vw,2.4rem)] text-fg outline-none short:sr-only">Find your residence</h2>
-      </div>
-      <button type="button" className="btn-icon" onClick={onClose} aria-label="Close unit finder"><Icon d="m5 5 14 14M19 5 5 19" /></button>
+    {/* Closed by Back in the menu bar (client, 20 Nov 2026), or Escape. */}
+    <div className="min-w-0">
+      <p className="eyebrow">02 · Unit finder</p>
+      <h2 tabIndex={-1} className="display mt-2 text-[clamp(1.5rem,2.4vw,2.4rem)] text-fg outline-none short:sr-only">Find your residence</h2>
     </div>
 
     <div className="grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)] gap-3 split:grid-cols-[minmax(15rem,19rem)_minmax(0,1fr)] split:grid-rows-1 split:gap-6 3xl:grid-cols-[minmax(18rem,23rem)_minmax(0,1fr)]">
@@ -512,12 +512,14 @@ function CompareDialog({ ids, results, look, restore, onClose, onOpen: openPlan 
   useLayoutEffect(() => { if (restore?.scroll && sheet.current) sheet.current.scrollTop = restore.scroll }, [])
   const types = ids.map(planById)
   const matching = Object.fromEntries(groupByType(results).map(group => [group.type.id, group]))
-  // Opacity only: a hidden ancestor would take focus away from the close button.
+  // Closed by Back in the menu bar (client, 20 Nov 2026), or Escape; the bar
+  // stays outside, so the comparison is not modal. It takes focus itself.
+  // Opacity only: a hidden ancestor would take that focus away.
   // Coming back from a plan, the finder under it must not show: the cream
   // ground is there at once (the plan page left on cream) and only the
   // comparison's contents fade in.
   useLayoutEffect(() => {
-    root.current.querySelector('[data-close]')?.focus({ preventScroll: true })
+    root.current.focus({ preventScroll: true })
     if (prefersReducedMotion()) return
     const context = gsap.context(() => {
       const timeline = gsap.timeline({ defaults: { ease: 'silk' } })
@@ -544,8 +546,8 @@ function CompareDialog({ ids, results, look, restore, onClose, onOpen: openPlan 
     <span className="text-[0.6rem] font-medium uppercase tracking-[0.18em] text-accent">{type.configuration}</span>
   </div>
 
-  return createPortal(<div ref={root} role="dialog" aria-modal="true" aria-label="Compare plan types" data-tone="light"
-    className="absolute inset-0 z-70 flex flex-col bg-cream-100 px-(--gutter) pb-[max(clamp(0.75rem,3vh,2rem),var(--credit-space))] text-fg">
+  return createPortal(<div ref={root} role="dialog" tabIndex={-1} aria-label="Compare plan types" data-tone="light"
+    className="absolute inset-0 z-70 flex flex-col bg-cream-100 outline-none px-(--gutter) pb-[max(clamp(0.75rem,3vh,2rem),var(--credit-space))] text-fg">
     <div data-compare-head className="flex min-h-(--header-h) shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 py-2">
       <p className="eyebrow">Compare · {types.map(type => type.label).join(' · ')}{view === 'details' && ' · Full details'}{view === 'views' && ' · Views'}</p>
       <div className="ml-auto flex flex-wrap items-center justify-end gap-3">
@@ -560,7 +562,6 @@ function CompareDialog({ ids, results, look, restore, onClose, onOpen: openPlan 
               <svg viewBox="0 0 32 12" aria-hidden="true"><path d="M31 6H3m5-5-5 5 5 5" /></svg>Unit plans
             </button>
           </>}
-        <button type="button" data-close className="btn-icon" onClick={onClose} aria-label="Close comparison"><Icon d="m5 5 14 14M19 5 5 19" /></button>
       </div>
     </div>
 

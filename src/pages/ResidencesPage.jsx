@@ -2,6 +2,7 @@ import { forwardRef, lazy, Suspense, useEffect, useLayoutEffect, useRef, useStat
 import { useSearchParams } from 'react-router'
 import { gsap } from '../app/reveal.js'
 import { useShell } from '../app/ShellContext.js'
+import { useBack } from '../app/back.js'
 import { ArrowIcon, ChevronIcon } from '../components/Brand.jsx'
 import { PageHeading } from '../components/PageKit.jsx'
 import UnitFinder from '../components/UnitFinder.jsx'
@@ -62,6 +63,12 @@ export default function ResidencesPage() {
     gsap.to(intro.current, { autoAlpha: 0, y: -8, duration, ease: 'power2.in', overwrite: true, onComplete: () => setMode(next) })
   }
   const close = () => setMode(null)
+  // Back in the menu bar, beside Home, closes whatever is open, the deepest
+  // first: a drone view, then Visual selection or the unit finder (the
+  // finder's comparison sits between them). It replaced their close buttons
+  // (client, 20 Nov 2026). Escape still closes them.
+  useBack(Boolean(mode), close, 1)
+  useBack(Boolean(viewing), () => setViewing(null), 3)
   // The menu now drops down over the page, so it no longer closes whichever
   // way of exploring is open; leaving the page still starts it afresh.
   const quiet = useRef(false)
@@ -119,15 +126,10 @@ export default function ResidencesPage() {
     <div className="relative min-h-[46vh] flex-1 split:min-h-0">
       {visual
         ? <div ref={region} role="region" aria-label="Visual selection" className="absolute inset-0 flex flex-col gap-4">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="eyebrow">01 · Visual selection</p>
-              <h2 tabIndex={-1} className="display mt-2 text-[clamp(1.5rem,2.4vw,2.4rem)] text-fg outline-none">Select a floor</h2>
-              <p className="mt-2 max-w-xl text-[0.58rem] uppercase leading-relaxed tracking-[0.22em] text-muted/90">Floors <span className="num">{openFloors}</span> open · higher floors to follow</p>
-            </div>
-            <button type="button" className="btn-icon" onClick={close} aria-label="Close visual selection">
-              <svg viewBox="0 0 24 24"><path d="m5 5 14 14M19 5 5 19" /></svg>
-            </button>
+          <div>
+            <p className="eyebrow">01 · Visual selection</p>
+            <h2 tabIndex={-1} className="display mt-2 text-[clamp(1.5rem,2.4vw,2.4rem)] text-fg outline-none">Select a floor</h2>
+            <p className="mt-2 max-w-xl text-[0.58rem] uppercase leading-relaxed tracking-[0.22em] text-muted/90">Floors <span className="num">{openFloors}</span> open · higher floors to follow</p>
           </div>
           {/* Point at Wing A or Wing B to preview that wing's floor, click or
               tap to choose it, then open its plans. The panel sits below the
@@ -180,7 +182,7 @@ export default function ResidencesPage() {
           <p className="-mt-2 text-right text-[0.52rem] uppercase tracking-[0.22em] text-muted/90">Architect’s impression</p>
         </div>
         : finder
-          ? <UnitFinder ref={region} reopen={params.get('finder')} onClose={close} onOpenPlan={openPlan} onView={setViewing} />
+          ? <UnitFinder ref={region} reopen={params.get('finder')} onOpenPlan={openPlan} onView={setViewing} />
           : <div ref={art} className="absolute inset-0 flex flex-col">
             <div data-reveal="fade" className="relative min-h-0 flex-1">
               <Suspense fallback={null}><OrbitView sky={false} zoom={1.3} className={FADE} label="Rendered orbit of the Arkade Ascend tower. Drag to turn it." /></Suspense>
@@ -188,7 +190,7 @@ export default function ResidencesPage() {
             </div>
           </div>}
     </div>
-    {viewing && <ViewOverlay wing={viewing.wing} floor={viewing.floor} unit={viewing.unit} onClose={() => setViewing(null)} />}
+    {viewing && <ViewOverlay wing={viewing.wing} floor={viewing.floor} unit={viewing.unit} onClose={() => setViewing(null)} backInBar />}
   </section>
 }
 

@@ -1,5 +1,7 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
+import { useLocation } from 'react-router'
 import { gsap } from './reveal.js'
+import { useBackFor } from './back.js'
 import { sections, sectionIndex } from './routes.js'
 import { playClick, preloadClick } from './clickSound.js'
 import { prefersReducedMotion } from '../hooks/useMediaQuery.js'
@@ -13,16 +15,21 @@ const GHOST = 'pointer-events-none invisible absolute left-0 top-0'
 // other page carries only a Home button in the same place. It is one bar
 // holding both, so a change of page morphs it (client, 20 Nov 2026): leaving
 // home, the menu shrinks into the Home button towards the middle; coming back,
-// the Home button opens out into the menu. A soft plum gradient rises behind
+// the Home button opens out into the menu. Where a page has something open
+// (Residences), Back stands beside Home and closes it (back.js); the bar then
+// rises over the page's full-screen views. A soft plum gradient rises behind
 // it so it reads over any page.
 export default function BottomNav({ currentId, onNavigate }) {
   const bar = useRef(null)
   const list = useRef(null)
   const homeRow = useRef(null)
+  const backBox = useRef(null)
   const drawn = useRef(0)      // the bar's width as last drawn, where a morph starts
   const scrolled = useRef(0)   // the menu row's sideways scroll, kept through a morph
   const currentIndex = sectionIndex(currentId)
   const home = currentId === 'tower'
+  const back = useBackFor(useLocation().pathname)
+  const hasBack = Boolean(back)
   useEffect(() => { preloadClick() }, [])
 
   // Follow the bar's drawn width (resizes, and each frame of a morph), so an
@@ -65,12 +72,33 @@ export default function BottomNav({ currentId, onNavigate }) {
     return () => ctx.revert()
   }, [home])
 
+  // Back slides open beside Home as it is offered, and closes as it is taken
+  // away; the bar's width follows (leaving the page, it closes as the bar
+  // fades into the menu).
+  const backShown = useRef(hasBack)
+  useLayoutEffect(() => {
+    if (backShown.current === hasBack) return
+    backShown.current = hasBack
+    if (prefersReducedMotion()) return
+    const box = backBox.current
+    const ctx = gsap.context(() => {
+      const done = () => gsap.set(box, { clearProps: 'all' })
+      if (hasBack) {
+        gsap.fromTo(box, { width: 0, opacity: 0, overflow: 'hidden' }, { width: box.offsetWidth, opacity: 1, duration: 0.6, ease: 'silk', onComplete: done })
+      } else {
+        gsap.set(box, { display: 'flex', overflow: 'hidden' })
+        gsap.fromTo(box, { width: box.offsetWidth, opacity: 1 }, { width: 0, opacity: 0, duration: 0.5, ease: 'silk', onComplete: done })
+      }
+    })
+    return () => ctx.revert()
+  }, [hasBack])
+
   return <>
     {/* The website's plum, rising from the foot, with a faint warmth of gold under the bar. */}
     <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 z-[35] h-[calc(var(--credit-space)+4rem)] bg-[radial-gradient(ellipse_45%_70%_at_50%_100%,rgba(176,133,82,.22),transparent_70%),linear-gradient(to_top,rgba(26,17,20,.9),rgba(33,22,26,.62)_38%,rgba(61,42,47,.22)_70%,transparent)]" />
 
-    <nav aria-label={home ? 'Sections' : 'Home'} data-tone="dark"
-      className="absolute inset-x-(--gutter) bottom-(--foot-clear) z-40 flex justify-center">
+    <nav aria-label={home ? 'Sections' : hasBack ? 'Back and home' : 'Home'} data-tone="dark"
+      className={`absolute inset-x-(--gutter) bottom-(--foot-clear) flex justify-center ${hasBack ? 'z-[75]' : 'z-40'}`}>
       <div ref={bar} className="nav-bar relative min-w-0 max-w-full rounded-full">
         <ol ref={list} inert={home ? undefined : ''} aria-hidden={home ? undefined : true}
           onScroll={event => { scrolled.current = event.currentTarget.scrollLeft }}
@@ -82,6 +110,12 @@ export default function BottomNav({ currentId, onNavigate }) {
         </ol>
         <div ref={homeRow} inert={home ? '' : undefined} aria-hidden={home || undefined}
           className={`flex justify-center p-1.5 ${home ? GHOST : ''}`}>
+          <div ref={backBox} inert={hasBack ? undefined : ''} className={hasBack ? 'flex' : 'hidden'}>
+            <button type="button" className="chip nav-chip mr-1 flex shrink-0 items-center gap-2.5 whitespace-nowrap pl-4" onClick={() => { playClick(); back?.run() }}>
+              <svg viewBox="0 0 24 24" className="size-[1.05rem] fill-none stroke-current" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19.5 12h-15m6-6.5L4.5 12l6 6.5" /></svg>
+              Back
+            </button>
+          </div>
           <button type="button" className="chip nav-chip flex items-center gap-2.5 whitespace-nowrap pl-4" onClick={() => { playClick(); onNavigate('/') }}>
             <svg viewBox="0 0 24 24" className="size-[1.05rem] fill-none stroke-current" strokeWidth="1.3" strokeLinejoin="round" aria-hidden="true"><path d="M3.5 11 12 4l8.5 7M6 9v10.5h4.5V14h3v5.5H18V9" /></svg>
             Home

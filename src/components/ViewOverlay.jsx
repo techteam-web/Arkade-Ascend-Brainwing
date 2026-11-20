@@ -103,7 +103,10 @@ const roomsText = rooms => {
 }
 const edgeText = edge => edge == null ? '—' : `${edge}°`
 
-export default function ViewOverlay({ wing = towers[0].id, floor = null, unit = null, onClose }) {
+// `backInBar` (Residences, client 20 Nov 2026): no close button; Back in the
+// menu bar closes the view (the page offers it), so the bar stays reachable,
+// the view is not modal and its foot keeps clear of the bar.
+export default function ViewOverlay({ wing = towers[0].id, floor = null, unit = null, onClose, backInBar = false }) {
   const { menuOpen } = useShell()
   const root = useRef(null)
   const pano = useRef(null)
@@ -138,10 +141,11 @@ export default function ViewOverlay({ wing = towers[0].id, floor = null, unit = 
     if (next) pickFloor(next.floor)
   }
 
-  // Focus goes to Close, and back to whatever opened the view.
+  // Focus goes to Close (to the view itself where Back closes it), and back
+  // to whatever opened the view.
   useLayoutEffect(() => {
     const opener = document.activeElement
-    root.current.querySelector('[data-close]')?.focus({ preventScroll: true })
+    ;(root.current.querySelector('[data-close]') ?? root.current).focus({ preventScroll: true })
     const context = gsap.context(() => {
       if (!prefersReducedMotion()) gsap.from(root.current, { opacity: 0, duration: 0.6, ease: 'silk' })
     })
@@ -249,8 +253,8 @@ export default function ViewOverlay({ wing = towers[0].id, floor = null, unit = 
     setPart({ tilt })
   }
   const title = top ? 'Top view' : `Wing ${tower} · Floor ${flight.floor}`
-  return createPortal(<div ref={root} role="dialog" aria-modal="true" aria-label={`${title}, aerial view`} data-tone="dark" data-own-gesture data-own-keys
-    className="absolute inset-0 z-70 overflow-hidden bg-plum-950 text-fg">
+  return createPortal(<div ref={root} role="dialog" aria-modal={backInBar ? undefined : 'true'} tabIndex={-1} aria-label={`${title}, aerial view`} data-tone="dark" data-own-gesture data-own-keys
+    className="absolute inset-0 z-70 overflow-hidden bg-plum-950 text-fg outline-none">
     {top
       ? <PanoramaViewer key="top" ref={pano} className="absolute inset-0" scenes={topView.times} active={time} start={TOP_START} spinning={spinning} paused={menuOpen}
         label={`360-degree view from directly above the site, ${time}. Drag to look around.`} />
@@ -259,7 +263,7 @@ export default function ViewOverlay({ wing = towers[0].id, floor = null, unit = 
     {/* Shade the edges that carry text, so it reads over bright sky. */}
     <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(18,11,13,.7),transparent_26%,transparent_58%,rgba(18,11,13,.88))]" />
 
-    <div className="pointer-events-none absolute inset-0 flex flex-col px-(--gutter) pb-[clamp(0.75rem,3vh,2rem)]">
+    <div className={`pointer-events-none absolute inset-0 flex flex-col px-(--gutter) ${backInBar ? 'pb-[max(clamp(0.75rem,3vh,2rem),var(--credit-space))]' : 'pb-[clamp(0.75rem,3vh,2rem)]'}`}>
       {setting && !top && tower === planWing && <div className="glass-panel pointer-events-auto absolute left-(--gutter) top-[calc(var(--header-h)+4.5rem)] z-0 flex max-h-[calc(100dvh-var(--header-h)-7rem)] w-80 max-w-[calc(100%-2*var(--gutter))] flex-col gap-2.5 overflow-y-auto rounded-sm bg-plum-950/90! p-3.5 text-ivory/90">
         <div>
           <p className="eyebrow">Setup · Apartment <span className="num">{home}</span>{facing === 'back' && ' · back'}</p>
@@ -324,9 +328,9 @@ export default function ViewOverlay({ wing = towers[0].id, floor = null, unit = 
               : <>Aerial photograph of the site, <span className="num">{flight.height}</span> m up, the height of floor <span className="num">{flight.floor}</span> · {lock ? <>outlook of Unit <span className="num">{home}</span>{facing === 'back' && ' at the back'}{!outlook.manual && ', angle indicative'}</> : 'views from each residence vary'}</>}
           </p>
         </div>
-        <button type="button" data-close className="btn-icon pointer-events-auto shrink-0" onClick={onClose} aria-label="Close view">
+        {!backInBar && <button type="button" data-close className="btn-icon pointer-events-auto shrink-0" onClick={onClose} aria-label="Close view">
           <svg viewBox="0 0 24 24"><path d="m5 5 14 14M19 5 5 19" /></svg>
-        </button>
+        </button>}
       </div>
 
       {/* The view's options drop down from the top left, over the picture. */}
